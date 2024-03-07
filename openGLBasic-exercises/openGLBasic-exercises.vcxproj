@@ -152,9 +152,11 @@
     <None Include="ShaderFiles\RedCubeN\vertShader.glsl" />
     <None Include="ShaderFiles\RedCube\fargShader.glsl" />
     <None Include="ShaderFiles\RedCube\vertShader.glsl" />
+    <None Include="ShaderFiles\TwoModel\fargShader.glsl" />
+    <None Include="ShaderFiles\TwoModel\vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\RedCubeN.cpp" />
+    <ClCompile Include="src\TwoModel.cpp" />
     <ClCompile Include="src\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -1,12 +1,13 @@
-// C++/OpenGL Ó¦ÓÃ³ÌĞò
+// Í¬Ê±äÖÈ¾ËÄÀâ×µºÍÕı·½Ìå
 #include "Utils.h"
 
 using namespace std;
-
+// 
 #define numVAOs 1 
 #define numVBOs 2 
 float cameraX, cameraY, cameraZ;
 float cubeLocX, cubeLocY, cubeLocZ;
+float pyrLocX, pyrLocY, pyrLocZ;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
@@ -17,7 +18,7 @@ float aspect;
 glm::mat4 pMat, vMat, mMat, mvMat;
 void setupVertices(void) { // 36 ¸ö¶¥µã£¬12 ¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ 2¡Á2¡Á2 Á¢·½Ìå
 
-	float vertexPositions[108] = {
+	float cubePositions[108] = {
 	-1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
 	1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
 	1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
@@ -32,83 +33,67 @@ void setupVertices(void) { // 36 ¸ö¶¥µã£¬12 ¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ 2¡Á2¡
 	1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
 	};
 
+	// ËÄÀâ×¶ÓĞ 18 ¸ö¶¥µã£¬ ÓÉ 6 ¸öÈı½ÇĞÎ×é³É£¨²àÃæ 4 ¸ö£¬µ×Ãæ 2 ¸ö£©
+	float pyramidPositions[54] =
+	{
+	-1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Ç°Ãæ
+	1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // ÓÒÃæ
+	1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // ºóÃæ
+	-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // ×óÃæ
+	-1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, // µ×Ãæ×óÇ°
+	1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f // µ×ÃæÓÒºó
+	};
+
+
 	glGenVertexArrays(1, vao);
 	glBindVertexArray(vao[0]);
 	glGenBuffers(numVBOs, vbo);
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubePositions), cubePositions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidPositions), pyramidPositions, GL_STATIC_DRAW);
+
 }
 void init(GLFWwindow* window) {
 
 	renderingProgram = Utils::createShaderProgram(
-		Utils::readShaderSource("C:\\Users\\13680\\Music\\OpenGL\\creat_window\\creatWindow\\creatWindow\\ShaderFiles\\RedCube\\vertShader.glsl"),
-		Utils::readShaderSource("C:\\Users\\13680\\Music\\OpenGL\\creat_window\\creatWindow\\creatWindow\\ShaderFiles\\RedCube\\fargShader.glsl")
+		Utils::readShaderSource("C:\\Users\\13680\\Music\\OpenGL\\openGLBasic-exercises\\openGLBasic-exercises\\openGLBasic-exercises\\ShaderFiles\\TwoModel\\vertShader.glsl"),
+		Utils::readShaderSource("C:\\Users\\13680\\Music\\OpenGL\\openGLBasic-exercises\\openGLBasic-exercises\\openGLBasic-exercises\\ShaderFiles\\TwoModel\\fargShader.glsl")
 	);
-
-	// ¹¹½¨Í¸ÊÓ¾ØÕó
 	glfwGetFramebufferSize(window, &width, &height);
+	cameraX = 0.0f; cameraY = 0.0f; cameraZ = 16.0f;
+	cubeLocX = 0.0f; cubeLocY = -2.0f; cubeLocZ = 7.0f;
+	pyrLocX = 4.0f; pyrLocY = 2.0f;; pyrLocZ = 0.0f;
+
 	aspect = (float)width / (float)height;
+	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
 
-	// ÓÃÓÚ´´½¨Í¸ÊÓÍ¶Ó°¾ØÕóµÄº¯Êı
-	/* fov: ÊÓÒ°µÄ½Ç¶È£¨ÊÓÒ°·¶Î§ÊÇ´¹Ö±·½ÏòÉÏµÄ½Ç¶È£©£¬Í¨³£ÓÃ»¡¶È±íÊ¾¡£
-	aspect : ÊÓ¿ÚµÄ¿í¸ß±È£¨¿í¶È³ıÒÔ¸ß¶È£©¡£
-	near : ½ü²Ã¼ôÃæµÄ¾àÀë¡£
-	far : Ô¶²Ã¼ôÃæµÄ¾àÀë¡£
-	*/
-	//perspective Í¸ÊÓµÄÒâË¼
-	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f); // 1.0472 radians = 60 degrees
-
-	cameraX = 0.0f; cameraY = 0.0f; cameraZ = 8.0f;
-	cubeLocX = 0.0f; cubeLocY = -2.0f; cubeLocZ = 0.0f; // ÑØ y ÖáÏÂÒÆÒÔÕ¹Ê¾Í¸ÊÓ
 	setupVertices();
 }
 
-glm::mat4 tMat, rMat;
+float timeFactor = 0.0f;
+GLuint vLoc, tfLoc;
+
 void display(GLFWwindow* window, double currentTime) {
 
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(renderingProgram);
 
-	// »ñÈ¡ MV ¾ØÕóºÍÍ¶Ó°¾ØÕóµÄÍ³Ò»±äÁ¿
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
-	// glm::translate º¯Êı½ÓÊÜÒ»¸ö¾ØÕó×÷ÎªÊäÈë£¬²¢·µ»ØÒ»¸öĞÂµÄ¾ØÕó£¬¸Ã¾ØÕó±íÊ¾ÔÚÖ¸¶¨µÄ·½ÏòÉÏ½øĞĞÆ½ÒÆ
-	// glm::mat4() ÊÇÒ»¸öÓÃÓÚ´´½¨** 4x4µ¥Î»¾ØÕó
-	// glm::vec3 ÊÇÒ»¸öÓÃÓÚ±íÊ¾ÈıÎ¬ÏòÁ¿µÄÊı¾İÀàĞÍ
-	// Ê¹ÓÃµ±Ç°Ê±¼äÀ´¼ÆËã x Öá¡¢y Öá¡¢z Öá×ø±êµÄ²»Í¬±ä»»
-	tMat = glm::translate(
-		glm::mat4(1.0f),
-		glm::vec3(sin(0.35f * currentTime) * 2.0f, cos(0.52f * currentTime) * 2.0f, sin(0.7f * currentTime) * 2.0f));
-
-	// ´´½¨Ğı×ª±ä»»¾ØÕó
-	/*
-	  Ä¿±ê¾ØÕó£ºÒ»¸ö mat4 ÀàĞÍµÄ¾ØÕó£¬±íÊ¾Òª½øĞĞĞı×ªµÄÄ¿±ê¾ØÕó¡£
-	  Ğı×ª½Ç¶È£ºÒ»¸ö¸¡µãÊı£¬±íÊ¾Ğı×ªµÄ½Ç¶È£¨ÒÔ»¡¶ÈÎªµ¥Î»£©¡£
-	  Ğı×ªÖá£ºÒ»¸ö vec3 ÀàĞÍµÄÏòÁ¿£¬±íÊ¾ÈÆÄÄ¸öÖá½øĞĞĞı×ª¡£
-	*/
-	// glm::vec3 ÊÇÒ»¸öÓÃÓÚ±íÊ¾ÈıÎ¬ÏòÁ¿µÄÊı¾İÀàĞÍ
-	rMat = glm::rotate(glm::mat4(1.0f), 1.75f * (float)currentTime, glm::vec3(0.0f, 1.0f, 0.0f));
-	rMat = glm::rotate(rMat, 1.75f * (float)currentTime, glm::vec3(1.0f, 0.0f, 0.0f));
-	rMat = glm::rotate(rMat, 1.75f * (float)currentTime, glm::vec3(0.0f, 0.0f, 1.0f));
-
 	// vMatÊÓÍ¼¾ØÕó, mMatÄ£ĞÍ¾ØÕó
 	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+
 	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
 
-	//mMat = tMat * rMat; // ¶¯
 	mvMat = vMat * mMat;
 
-	// ½«Í¸ÊÓ¾ØÕóºÍ MV ¾ØÕó¸´ÖÆ¸øÏàÓ¦µÄÍ³Ò»±äÁ¿
-	// glUniformMatrix4fvÊÇÓÃÓÚ½«4x4¾ØÕóÊı¾İ´«µİ¸ø×ÅÉ«Æ÷³ÌĞòµÄº¯Êı
-	/* µÚÒ»¸ö²ÎÊı£ºuniform±äÁ¿µÄÎ»ÖÃ£¨ÓÉ glGetUniformLocation »ñÈ¡£©¡£
-	   µÚ¶ş¸ö²ÎÊı£ºÒª´«µİµÄ¾ØÕóµÄÊıÁ¿£¨Í¨³£Îª1£©¡£
-	   µÚÈı¸ö²ÎÊı£ºÊÇ·ñĞèÒª×ªÖÃ¾ØÕó£¨Í¨³£ÎªGL_FALSE£©¡£
-	   µÚËÄ¸ö²ÎÊı£ºÒª´«µİµÄ¾ØÕóÊı¾İ£¬Í¨³£ÊÇÒ»¸öÖ¸Ïò¾ØÕóÊı¾İµÄÖ¸Õë
-	*/
-	// glm::value_ptr()ÓÃÓÚ½«GLM¿âÖĞµÄ¾ØÕó»òÏòÁ¿Êı¾İ×ª»»ÎªÖ¸ÕëµÄº¯Êı
 	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
@@ -121,9 +106,23 @@ void display(GLFWwindow* window, double currentTime) {
 	glDepthFunc(GL_LEQUAL);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
+
+	// »æÖÆËÄÀâ×¶£¨Ê¹ÓÃ 1 ºÅ»º³åÇø£©
+	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(pyrLocX, pyrLocY, pyrLocZ));
+	mvMat = vMat * mMat;
+
+	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDrawArrays(GL_TRIANGLES, 0, 18);
 }
 int main(void) {
-
 	if (!glfwInit()) { exit(EXIT_FAILURE); }
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -138,11 +137,10 @@ int main(void) {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	Utils::readShaderSource("C:\\Users\\13680\\Music\\OpenGL\\openGLBasic-exercises\\openGLBasic-exercises\\openGLBasic-exercises\\ShaderFiles\\TwoModel\\vertShader.glsl"),
-		Utils::readShaderSource("C:\\Users\\13680\\Music\\OpenGL\\openGLBasic-exercises\\openGLBasic-exercises\\openGLBasic-exercises\\ShaderFiles\\TwoModel\\fargShader.glsl")
 
-		glfwDestroyWindow(window);
+	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
+
 }
 

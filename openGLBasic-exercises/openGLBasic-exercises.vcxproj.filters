@@ -26,12 +26,14 @@
     <None Include="ShaderFiles\OUT_TRIANGLES\vertShader.glsl" />
     <None Include="ShaderFiles\MOVE_OUT_TRIANGLES\fargShader.glsl" />
     <None Include="ShaderFiles\MOVE_OUT_TRIANGLES\vertShader.glsl" />
+    <None Include="ShaderFiles\TwoModel\fargShader.glsl" />
+    <None Include="ShaderFiles\TwoModel\vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\RedCubeN.cpp">
+    <ClCompile Include="src\Utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Utils.cpp">
+    <ClCompile Include="src\TwoModel.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
